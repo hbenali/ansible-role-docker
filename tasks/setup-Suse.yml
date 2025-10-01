@@ -1,5 +1,5 @@
 ---
-- name: Ensure old versions of Docker are not installed.
+- name: Ensure old versions of Docker are not installed
   package:
     name:
       - docker
@@ -9,7 +9,7 @@
       - docker-ce-cli
     state: absent
 
-- name: Add Docker repository (openSUSE / SLES).
+- name: Add Docker repository (openSUSE / SLES)
   zypper_repository:
     name: "docker-ce"
     repo: "{{ docker_zypper_repo_url }}"
@@ -17,11 +17,23 @@
     auto_import_keys: yes
   when: docker_add_repo | bool == true
 
-- name: Refresh zypper repositories.
+- name: Ensure standard update repositories are enabled (Leap/SLES)
+  zypper_repository:
+    name: "{{ item.name }}"
+    repo: "{{ item.url }}"
+    state: present
+    auto_import_keys: yes
+  loop:
+    - { name: "Update-OSS", url: "https://download.opensuse.org/update/leap/{{ ansible_distribution_version }}/oss/" }
+    - { name: "Update-NonOSS", url: "https://download.opensuse.org/update/leap/{{ ansible_distribution_version }}/non-oss/" }
+  when: docker_add_repo | bool == true
+
+- name: Refresh zypper repositories
   command: zypper --non-interactive refresh
   when: docker_add_repo | bool == true
 
-- name: Ensure Docker packages are installed.
+- name: Ensure Docker packages are installed
   ansible.legacy.zypper:
     name: "{{ docker_packages }}"
     state: present
+    update_cache: yes
