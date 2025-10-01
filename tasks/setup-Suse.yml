@@ -25,3 +25,4 @@
   ansible.legacy.zypper:
     name: "{{ docker_packages }}"
     state: present
+    update_cache: yes
